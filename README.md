@@ -1,1 +1,56 @@
 # ai-service-kit
+
+`ai-service-kit` is a standalone Python library that extracts stable reusable abstractions from `semantic-search-api` without bringing over app wiring, FastAPI routes, Chroma implementation details, or project-specific config.
+
+Version `0.1.0` includes:
+
+- Provider interfaces, registry, and factory for embedding providers.
+- Reusable health models and health check abstractions.
+- A metrics collector interface with a no-op implementation.
+- Small shared utilities for provider name normalization, UTC timestamps, and secret masking.
+- A vector store interface abstraction and lightweight related models.
+
+## Package layout
+
+This repository uses the standard `src` layout:
+
+```text
+src/
+	ai_service_kit/
+		providers/
+		health/
+		vectorstores/
+		utils.py
+```
+
+`ai_service_kit` is the importable Python package. The subfolders under it are internal subpackages, not separate published distributions.
+
+## Install locally
+
+Editable install with development dependencies:
+
+```powershell
+pip install -e .[dev]
+```
+
+If you want to use the configured Python 3.13 interpreter directly on this machine:
+
+```powershell
+C:/Users/Mani/AppData/Local/Programs/Python/Python313/python.exe -m pip install -e .[dev]
+```
+
+## Run tests
+
+```powershell
+C:/Users/Mani/AppData/Local/Programs/Python/Python313/python.exe -m pytest
+```
+
+Current verified result:
+
+```text
+14 passed
+```
+
+## Environment configuration
+
+This library does not currently load environment variables or require a `.env` file for unit tests. Keep `.env.example` in the application repo that owns provider credentials, runtime configuration, and service wiring. Add one here only if this library later grows runnable integration tests or examples that directly read environment-based settings.
