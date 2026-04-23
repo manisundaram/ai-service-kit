@@ -33,16 +33,30 @@ Editable install with development dependencies:
 pip install -e .[dev]
 ```
 
-If you want to use the configured Python 3.13 interpreter directly on this machine:
+Windows:
 
 ```powershell
-C:/Users/Mani/AppData/Local/Programs/Python/Python313/python.exe -m pip install -e .[dev]
+py -m pip install -e .[dev]
+```
+
+macOS:
+
+```bash
+python3 -m pip install -e .[dev]
 ```
 
 ## Run tests
 
+Windows:
+
 ```powershell
-C:/Users/Mani/AppData/Local/Programs/Python/Python313/python.exe -m pytest
+py -m pytest
+```
+
+macOS:
+
+```bash
+python3 -m pytest
 ```
 
 Current verified result:
