@@ -77,7 +77,7 @@ from ai_service_kit.logging import (
     setup_production_logging,  # Basic setup
     LoggingMiddleware,
     log_execution_time,
-    log_errors, 
+    log_errors,
     log_performance,
     Logger,  # Static interface - no __name__ needed!
     log      # Short alias
@@ -86,7 +86,7 @@ from ai_service_kit.logging import (
 # Method 1: Auto-configure from .env file (recommended)
 setup_enhanced_logging()  # Reads all config from environment
 
-# Method 2: Manual basic setup  
+# Method 2: Manual basic setup
 setup_production_logging(
     service_name="my-api",
     log_level="INFO",
@@ -108,13 +108,14 @@ def my_function():
 **Supported providers**: AWS CloudWatch, Azure Monitor, Google Cloud Logging, Datadog
 
 **Environment configuration (.env file)**:
+
 ```env
 # Basic setup
 APP_NAME=my-api
 LOG_LEVEL=INFO
 FILE_LOG_LEVEL=DEBUG
 
-# Enable cloud providers  
+# Enable cloud providers
 CLOUD_LOGGING_PROVIDERS=aws,datadog
 
 # AWS CloudWatch (errors only - cost-effective)
@@ -128,9 +129,10 @@ DATADOG_LOGGING_LEVEL=INFO
 DATADOG_API_KEY=your-api-key
 ```
 
-**Result**: 
+**Result**:
+
 - `DEBUG` → local files only
-- `INFO` → files + Datadog  
+- `INFO` → files + Datadog
 - `WARNING` → files + Datadog + console
 - `ERROR` → files + Datadog + console + CloudWatch
 
@@ -150,7 +152,7 @@ async def process_data():
 
 - **Cloud provider integration** - AWS CloudWatch, Azure Monitor, Google Cloud Logging, Datadog
 - **Environment-based configuration** - Complete setup via .env file, no code changes needed
-- **Cost optimization** - Per-provider log levels (errors to CloudWatch, info+ to Datadog)  
+- **Cost optimization** - Per-provider log levels (errors to CloudWatch, info+ to Datadog)
 - **Static logger interface** - `Logger.info("msg")` auto-detects module, no `__name__` needed
 - **Graceful fallbacks** - Works without cloud credentials, never crashes on provider failures
 - **Structured JSON logging** for production with human-readable format for development
