@@ -17,6 +17,7 @@ from .models import (
     HealthResponse,
     HealthStatus,
     MetricsSnapshot,
+    PingResponse,
     ProviderDiagnosticsResult,
     ServiceConfiguration,
     VectorStoreDiagnosticsResult,
@@ -236,4 +237,18 @@ def get_metrics(context: ServiceContext) -> MetricsSnapshot:
         usage=dict(snapshot.usage),
         reliability=dict(snapshot.reliability),
         errors=dict(snapshot.errors),
+    )
+
+
+def ping_service(context: ServiceContext) -> PingResponse:
+    """Return a minimal service ping response for ultra-lightweight health probes.
+    
+    This skips all expensive operations like provider checks, vectorstore checks,
+    and resolver calls. It only validates that the ServiceContext exists and
+    returns basic service information.
+    """
+    return PingResponse(
+        status="ok",
+        service_name=context.service_name,
+        service_version=context.service_version,
     )

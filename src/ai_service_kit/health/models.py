@@ -108,6 +108,16 @@ class SimpleHealthResponse:
 
 
 @dataclass(slots=True, frozen=True)
+class PingResponse:
+    """Minimal service ping response for ultra-lightweight health probes."""
+
+    status: str = "ok"
+    service_name: str = ""
+    service_version: str = ""
+    timestamp: str = field(default_factory=utc_now_iso)
+
+
+@dataclass(slots=True, frozen=True)
 class ProviderDiagnosticsResult:
     """Diagnostics result for a single provider implementation."""
 

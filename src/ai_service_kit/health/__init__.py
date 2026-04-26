@@ -12,12 +12,13 @@ from .models import (
     HealthResponse,
     HealthStatus,
     MetricsSnapshot,
+    PingResponse,
     ProviderDiagnosticsResult,
     ServiceConfiguration,
     SimpleHealthResponse,
     VectorStoreDiagnosticsResult,
 )
-from .service import ServiceContext, check_health, get_diagnostics, get_metrics
+from .service import ServiceContext, check_health, get_diagnostics, get_metrics, ping_service
 
 __all__ = [
     "BaseHealthCheck",

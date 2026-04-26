@@ -11,7 +11,7 @@ from .providers.base import (
 )
 from .providers.factory import ProviderFactory
 from .providers.registry import ProviderRegistry
-from .health import ServiceContext, check_health, get_diagnostics, get_metrics
+from .health import ServiceContext, check_health, get_diagnostics, get_metrics, ping_service
 
 __all__ = [
     "BaseEmbeddingProvider",
@@ -27,4 +27,5 @@ __all__ = [
     "check_health",
     "get_diagnostics",
     "get_metrics",
+    "ping_service",
 ]

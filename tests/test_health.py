@@ -10,6 +10,7 @@ from ai_service_kit.health import (
     HealthResponse,
     HealthStatus,
     NoOpMetricsCollector,
+    PingResponse,
     ProviderDiagnosticsResult,
     ServiceContext,
     ServiceConfiguration,
@@ -19,6 +20,7 @@ from ai_service_kit.health import (
     check_health,
     get_diagnostics,
     get_metrics,
+    ping_service,
 )
 
 
@@ -284,3 +286,33 @@ def test_get_metrics_enriches_snapshot_with_service_metadata() -> None:
     assert snapshot.provider == "openai"
     assert snapshot.vectorstore == "chromadb"
     assert snapshot.performance["requests"] == 10
+
+
+def test_ping_service_returns_minimal_response_without_expensive_operations() -> None:
+    context = ServiceContext(
+        service_name="ping-test-service",
+        service_version="2.1.0",
+        provider="claude",
+        vectorstore="chromadb",
+        mock_mode=True,
+        # Note: no health_checks, no resolvers - ping should work without them
+    )
+
+    response = ping_service(context)
+
+    assert response.status == "ok"
+    assert response.service_name == "ping-test-service"
+    assert response.service_version == "2.1.0"
+    assert response.timestamp is not None
+
+
+def test_ping_response_model_supports_basic_service_identification() -> None:
+    response = PingResponse(
+        status="ok",
+        service_name="example-service", 
+        service_version="1.0.0",
+    )
+
+    assert response.status == "ok"
+    assert response.service_name == "example-service"
+    assert response.service_version == "1.0.0"
