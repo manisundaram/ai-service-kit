@@ -13,6 +13,9 @@ from .providers.factory import ProviderFactory
 from .providers.registry import ProviderRegistry
 from .health import ServiceContext, check_health, get_diagnostics, get_metrics, ping_service
 
+# Logging module is available as ai_service_kit.logging
+from . import logging
+
 __all__ = [
     "BaseEmbeddingProvider",
     "EmbeddingAPIError",
@@ -28,4 +31,5 @@ __all__ = [
     "get_diagnostics",
     "get_metrics",
     "ping_service",
+    "logging",
 ]
