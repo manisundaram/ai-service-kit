@@ -57,9 +57,7 @@ if __name__ == "__main__":
         
         # Cloud logging (commented out to avoid requiring credentials)
         # 'CLOUD_LOGGING_PROVIDERS': 'aws,datadog',
-        # 'AWS_LOGGING_ENABLED': 'true',
         # 'AWS_LOGGING_LEVEL': 'ERROR',   # Only errors to expensive CloudWatch
-        # 'DATADOG_LOGGING_ENABLED': 'true', 
         # 'DATADOG_LOGGING_LEVEL': 'INFO', # Rich data to Datadog
     }
     
@@ -77,13 +75,11 @@ if __name__ == "__main__":
     print()
     print("# Send errors to AWS CloudWatch")
     print("CLOUD_LOGGING_PROVIDERS=aws")
-    print("AWS_LOGGING_ENABLED=true")  
     print("AWS_LOGGING_LEVEL=ERROR")
     print("AWS_LOG_GROUP=/my-api/production")
     print("AWS_REGION=us-east-1")
     print()
     print("# Send info+ to Datadog") 
-    print("DATADOG_LOGGING_ENABLED=true")
     print("DATADOG_LOGGING_LEVEL=INFO")
     print("DATADOG_API_KEY=your-api-key")
     print()

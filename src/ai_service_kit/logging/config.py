@@ -20,7 +20,6 @@ class CloudLoggingConfig:
     """Configuration for cloud logging providers."""
     
     provider: str  # 'aws', 'azure', 'gcp', 'datadog'
-    enabled: bool = True
     level: str = "ERROR"  # Only errors to cloud by default
     config: Dict[str, Any] = field(default_factory=dict)
 
@@ -57,23 +56,19 @@ def parse_cloud_config_from_env() -> List[CloudLoggingConfig]:
         CLOUD_LOGGING_PROVIDERS=aws,datadog
         
         # AWS CloudWatch
-        AWS_LOGGING_ENABLED=true
         AWS_LOGGING_LEVEL=ERROR
         AWS_LOG_GROUP=/my-app/production
         AWS_REGION=us-east-1
         
         # Azure Monitor  
-        AZURE_LOGGING_ENABLED=true
         AZURE_LOGGING_LEVEL=WARNING
         AZURE_CONNECTION_STRING=InstrumentationKey=...
         
         # Google Cloud Logging
-        GCP_LOGGING_ENABLED=true
         GCP_LOGGING_LEVEL=ERROR
         GCP_PROJECT_ID=my-project
         
         # Datadog
-        DATADOG_LOGGING_ENABLED=true
         DATADOG_LOGGING_LEVEL=INFO
         DATADOG_API_KEY=...
     """
@@ -85,11 +80,6 @@ def parse_cloud_config_from_env() -> List[CloudLoggingConfig]:
     
     for provider in enabled_providers:
         provider = provider.lower()
-        
-        # Check if this provider is enabled
-        env_key = f"{provider.upper()}_LOGGING_ENABLED"
-        if not _str_to_bool(os.getenv(env_key, 'false')):
-            continue
         
         # Get provider-specific configuration
         if provider in ('aws', 'cloudwatch'):
@@ -171,7 +161,6 @@ def load_logging_config_from_env(
         
         # Cloud logging (see parse_cloud_config_from_env for details)
         CLOUD_LOGGING_PROVIDERS=aws,datadog
-        AWS_LOGGING_ENABLED=true
         AWS_LOGGING_LEVEL=ERROR
         ...
     """
@@ -224,13 +213,11 @@ def setup_enhanced_logging(
         CLOUD_LOGGING_PROVIDERS=aws,datadog
         
         # AWS CloudWatch (errors only)
-        AWS_LOGGING_ENABLED=true
         AWS_LOGGING_LEVEL=ERROR
         AWS_LOG_GROUP=/my-api/production
         AWS_REGION=us-west-2
         
         # Datadog (info and above)
-        DATADOG_LOGGING_ENABLED=true
         DATADOG_LOGGING_LEVEL=INFO
         DATADOG_API_KEY=abc123...
         ```

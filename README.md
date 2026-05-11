@@ -2,13 +2,32 @@
 
 `ai-service-kit` is a standalone Python library that extracts stable reusable abstractions from `semantic-search-api` without bringing over app wiring, FastAPI routes, Chroma implementation details, or project-specific config.
 
+If your goal is to start a new FastAPI service that consumes this kit, use the ai-service-template repository as the starting point and keep ai-service-kit as the shared library dependency.
+
+## Documentation map
+
+- Main package overview and quickstart: [README.md](README.md)
+- Credentials and cloud logging configuration details: [CREDENTIALS_AND_CONFIG.md](CREDENTIALS_AND_CONFIG.md)
+- Provider architecture and migration guidance: [MIGRATION_NOTES.md](MIGRATION_NOTES.md)
+
+Quick navigation:
+
+- New service setup: start with [README.md](README.md)
+- Provider architecture decisions: see [MIGRATION_NOTES.md](MIGRATION_NOTES.md)
+- Cloud logging credentials and examples: see [CREDENTIALS_AND_CONFIG.md](CREDENTIALS_AND_CONFIG.md)
+
 Version `0.1.0` includes:
 
 - Provider interfaces, registry, and factory for embedding providers.
+- Provider interfaces, registry, and factory for LLM providers.
 - Reusable health models and health check abstractions.
 - Service operational methods: `check_health()`, `get_diagnostics()`, `get_metrics()`, and `ping_service()`.
+- Reusable diagnostics runners for config validation, readiness probes, and benchmarks.
+- A reusable FastAPI operational scaffold for CORS, logging middleware, and standard ops endpoints.
+- Shared pydantic-settings helpers for env parsing, secret masking, and debug snapshots.
 - **Production logging module** with structured logging, request correlation, performance monitoring, and **cloud provider integration** (AWS CloudWatch, Azure Monitor, Google Cloud Logging, Datadog).
 - A metrics collector interface with a no-op implementation.
+- A default in-memory metrics collector that services can extend.
 - Small shared utilities for provider name normalization, UTC timestamps, and secret masking.
 - A vector store interface abstraction and lightweight related models.
 
@@ -64,7 +83,7 @@ python3 -m pytest
 Current verified result:
 
 ```text
-34 total (32 passed, 2 minor test environment issues)
+66 passed
 ```
 
 ## Production logging
@@ -107,6 +126,18 @@ def my_function():
 
 **Supported providers**: AWS CloudWatch, Azure Monitor, Google Cloud Logging, Datadog
 
+Provider-specific notes:
+
+- AWS CloudWatch: requires AWS_LOG_GROUP and AWS_REGION, optional AWS_LOG_STREAM
+- Azure Monitor: requires AZURE_CONNECTION_STRING
+- Google Cloud Logging: optional GCP_PROJECT_ID, uses default credentials if omitted
+- Datadog: requires DATADOG_API_KEY
+
+Activation model:
+
+- CLOUD_LOGGING_PROVIDERS is the only activation switch
+- Per-provider settings supply configuration details and log levels
+
 **Environment configuration (.env file)**:
 
 ```env
@@ -119,12 +150,10 @@ FILE_LOG_LEVEL=DEBUG
 CLOUD_LOGGING_PROVIDERS=aws,datadog
 
 # AWS CloudWatch (errors only - cost-effective)
-AWS_LOGGING_ENABLED=true
 AWS_LOGGING_LEVEL=ERROR
 AWS_LOG_GROUP=/my-api/production
 
 # Datadog (info+ - rich dashboards)
-DATADOG_LOGGING_ENABLED=true
 DATADOG_LOGGING_LEVEL=INFO
 DATADOG_API_KEY=your-api-key
 ```
@@ -189,6 +218,120 @@ ping_response = ping_service(context)
 # Full health check
 health_response = await check_health(context)
 ```
+
+## LLM and Embedding providers
+
+The kit now supports both LLM and embedding provider families.
+
+- Keep LLM and embeddings as separate interfaces.
+- Reuse shared provider foundations (`registry`, `factory`, base errors, and usage normalization).
+
+Example:
+
+```python
+from ai_service_kit.providers import (
+    BaseLLMProvider,
+    LLMProviderFactory,
+    BaseEmbeddingProvider,
+    ProviderFactory,
+)
+```
+
+This keeps embedding APIs optimized for batch/vector workflows while preserving chat/completion ergonomics for LLM usage.
+
+Provider-specific notes:
+
+- LLM providers and embedding providers stay separate at the interface level
+- Shared registry, factory, and base provider primitives are centralized in src/ai_service_kit/providers/base.py
+- Backward-compatible compatibility modules still exist for older import paths
+
+Provider-specific configuration notes:
+
+- You can run the same provider for both families (common case), for example OpenAI for LLM and embeddings
+- You can split providers by family when needed, for example LLM=Gemini and Embeddings=OpenAI
+- Settings fallback is intentionally simple (2 levels only):
+  - Family-specific provider key first (override)
+  - Shared provider key second (default)
+
+Examples:
+
+```env
+# Shared defaults (used by both families unless overridden)
+OPENAI_API_KEY=shared-openai-key
+OPENAI_MODEL=gpt-4o-mini
+
+# Optional family-specific override
+LLM_OPENAI_API_KEY=llm-specific-openai-key
+EMBEDDING_OPENAI_MODEL=text-embedding-3-large
+```
+
+Behavior:
+
+- LLM OpenAI API key: LLM_OPENAI_API_KEY -> OPENAI_API_KEY
+- Embedding OpenAI model: EMBEDDING_OPENAI_MODEL -> OPENAI_MODEL
+
+For rationale and migration details, see [MIGRATION_NOTES.md](MIGRATION_NOTES.md).
+
+## Logging provider activation model
+
+Logging provider activation uses one switch only:
+
+- CLOUD_LOGGING_PROVIDERS controls which providers are active
+
+Provider-specific logging settings (like AWS_LOGGING_LEVEL, AZURE_CONNECTION_STRING, DATADOG_API_KEY) configure those active providers.
+
+Example:
+
+```env
+CLOUD_LOGGING_PROVIDERS=aws,datadog
+
+AWS_LOGGING_LEVEL=ERROR
+AWS_LOG_GROUP=/my-api/production
+AWS_REGION=us-east-1
+
+DATADOG_LOGGING_LEVEL=INFO
+DATADOG_API_KEY=your-datadog-api-key
+```
+
+For full cloud-credential guidance, see [CREDENTIALS_AND_CONFIG.md](CREDENTIALS_AND_CONFIG.md).
+
+## FastAPI operational scaffold
+
+Use these helpers to avoid repeating startup wiring across sibling services:
+
+```python
+from ai_service_kit.health import apply_operational_middleware, register_operational_endpoints
+
+apply_operational_middleware(
+    app,
+    enable_cors=settings.enable_cors,
+    cors_origins=settings.cors_origins,
+)
+
+register_operational_endpoints(
+    app,
+    context_getter=lambda current_app: current_app.state.service_context,
+    settings_snapshot_getter=lambda current_app: current_app.state.settings.debug_snapshot(),
+)
+```
+
+Default endpoints:
+
+- `/ping`
+- `/health`
+- `/diagnostics`
+- `/metrics`
+- `/debug/config`
+
+## Settings helpers
+
+The `ai_service_kit.settings` package provides reusable `pydantic-settings` patterns:
+
+- `ServiceSettings` for generic service-level fields.
+- `parse_csv_list` for list parsing from env vars.
+- `build_provider_config` for normalized provider config selection.
+
+These helpers are intentionally generic; service-specific fields should remain in each service repo.
 
 ## Environment configuration
 

@@ -1,5 +1,10 @@
 # 🔐 Credentials, Configuration & Local vs Cloud Logging
 
+See also:
+
+- Package overview and quickstart: [README.md](README.md)
+- Provider architecture and migration guidance: [MIGRATION_NOTES.md](MIGRATION_NOTES.md)
+
 ## **TL;DR - Your Current Situation (No Cloud Providers)**
 
 ```env
@@ -37,9 +42,7 @@ LOG_STRUCTURED=false       # Human-readable vs JSON
 CLOUD_LOGGING_PROVIDERS=               # Empty = ALL cloud disabled
 CLOUD_LOGGING_PROVIDERS=aws,datadog    # Enable specific providers
 
-# Per-provider toggles (double safety)
-AWS_LOGGING_ENABLED=true
-DATADOG_LOGGING_ENABLED=false
+# Provider activation comes only from CLOUD_LOGGING_PROVIDERS
 ```
 
 ## **🔐 Credentials Required (Only for Cloud)**

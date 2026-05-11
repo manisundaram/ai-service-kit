@@ -50,8 +50,9 @@ def log_execution_time(
                 }
                 
                 if include_args:
-                    log_data["args"] = args
-                    log_data["kwargs"] = kwargs
+                    # Avoid reserved LogRecord keys like "args".
+                    log_data["function_args"] = args
+                    log_data["function_kwargs"] = kwargs
                 
                 try:
                     result = await func(*args, **kwargs)
@@ -92,8 +93,9 @@ def log_execution_time(
                 }
                 
                 if include_args:
-                    log_data["args"] = args
-                    log_data["kwargs"] = kwargs
+                    # Avoid reserved LogRecord keys like "args".
+                    log_data["function_args"] = args
+                    log_data["function_kwargs"] = kwargs
                 
                 try:
                     result = func(*args, **kwargs)
@@ -164,8 +166,9 @@ def log_errors(
                     }
                     
                     if include_args:
-                        log_data["args"] = args
-                        log_data["kwargs"] = kwargs
+                        # Avoid reserved LogRecord keys like "args".
+                        log_data["function_args"] = args
+                        log_data["function_kwargs"] = kwargs
                     
                     if include_traceback:
                         log_data["traceback"] = traceback.format_exc()
@@ -193,8 +196,9 @@ def log_errors(
                     }
                     
                     if include_args:
-                        log_data["args"] = args
-                        log_data["kwargs"] = kwargs
+                        # Avoid reserved LogRecord keys like "args".
+                        log_data["function_args"] = args
+                        log_data["function_kwargs"] = kwargs
                     
                     if include_traceback:
                         log_data["traceback"] = traceback.format_exc()

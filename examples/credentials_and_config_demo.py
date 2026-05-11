@@ -1,5 +1,5 @@
 """
-Complete guide to credentials, enable/disable flags, and local vs cloud logging.
+Complete guide to credentials and local vs cloud logging.
 
 This example demonstrates all the configuration options for controlling
 logging destinations independently.
@@ -53,12 +53,10 @@ def main():
         'CLOUD_LOGGING_PROVIDERS': 'aws,datadog',
         
         # AWS settings (will fail without real credentials)
-        'AWS_LOGGING_ENABLED': 'true',
         'AWS_LOGGING_LEVEL': 'ERROR',
         'AWS_LOG_GROUP': '/demo/logs',
         
         # Datadog settings (will fail without real API key)
-        'DATADOG_LOGGING_ENABLED': 'true', 
         'DATADOG_LOGGING_LEVEL': 'INFO',
         'DATADOG_API_KEY': 'fake-api-key-for-demo',
     })
@@ -95,15 +93,11 @@ Datadog:
     - DATADOG_API_KEY (from Datadog dashboard)
     - datadog package: pip install datadog
 
-🎚️  ENABLE/DISABLE FLAGS:
+🎚️  CLOUD PROVIDER ACTIVATION:
 
 Global Cloud Logging:
     CLOUD_LOGGING_PROVIDERS=""              # Disable ALL cloud logging
     CLOUD_LOGGING_PROVIDERS="aws,datadog"   # Enable specific providers
-
-Per-Provider Control:  
-    AWS_LOGGING_ENABLED=false              # Disable AWS even if listed
-    DATADOG_LOGGING_ENABLED=true           # Enable Datadog
     
 Local File Logging (Always Available):
     LOG_CONSOLE=false                      # Disable console output

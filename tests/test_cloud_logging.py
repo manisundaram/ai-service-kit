@@ -30,7 +30,6 @@ class TestCloudLoggingConfig:
         
         assert config.provider == "aws"
         assert config.level == "ERROR"
-        assert config.enabled is True
         assert config.config["log_group"] == "/test/logs"
         assert config.config["region"] == "us-west-2"
     
@@ -67,11 +66,9 @@ class TestCloudLoggingConfig:
     @patch.dict(os.environ, {
         'APP_NAME': 'test-app',
         'CLOUD_LOGGING_PROVIDERS': 'aws,datadog',
-        'AWS_LOGGING_ENABLED': 'true',
         'AWS_LOGGING_LEVEL': 'ERROR',
         'AWS_LOG_GROUP': '/test-app/production',
         'AWS_REGION': 'us-west-2',
-        'DATADOG_LOGGING_ENABLED': 'true',
         'DATADOG_LOGGING_LEVEL': 'INFO',
         'DATADOG_API_KEY': 'test-api-key',
     })
@@ -95,17 +92,15 @@ class TestCloudLoggingConfig:
         assert datadog_config.config["api_key"] == "test-api-key"
     
     @patch.dict(os.environ, {
-        'CLOUD_LOGGING_PROVIDERS': 'aws',
-        'AWS_LOGGING_ENABLED': 'false',  # Explicitly disabled
+        'CLOUD_LOGGING_PROVIDERS': '',
     })
     def test_disabled_cloud_provider(self) -> None:
-        """Test that disabled cloud providers are not included."""
+        """Test that no providers are included when none are selected."""
         config = load_logging_config_from_env()
         assert len(config.cloud_providers) == 0
     
     @patch.dict(os.environ, {
         'CLOUD_LOGGING_PROVIDERS': 'azure',
-        'AZURE_LOGGING_ENABLED': 'true',
         # Missing AZURE_CONNECTION_STRING
     })
     def test_missing_required_config(self) -> None:
@@ -192,8 +187,6 @@ def test_example_env_file_exists() -> None:
     content = example_env.read_text()
     
     # Check that it contains expected sections
-    assert "AWS_LOGGING_ENABLED" in content
-    assert "DATADOG_LOGGING_ENABLED" in content
     assert "CLOUD_LOGGING_PROVIDERS" in content
     assert "APP_NAME" in content
 
