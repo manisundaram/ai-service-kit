@@ -29,6 +29,7 @@ from .llm_base import (
 )
 from .llm_factory import LLMProviderFactory
 from .llm_registry import LLMProviderRegistry
+from .mock_providers import MockEmbeddingProvider, MockLLMProvider, register_mock_providers
 from .registry import ProviderRegistry
 
 __all__ = [
@@ -58,4 +59,7 @@ __all__ = [
     "ProviderRegistry",
     "LLMProviderFactory",
     "LLMProviderRegistry",
+    "MockLLMProvider",
+    "MockEmbeddingProvider",
+    "register_mock_providers",
 ]

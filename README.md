@@ -20,6 +20,7 @@ Version `0.1.0` includes:
 
 - Provider interfaces, registry, and factory for embedding providers.
 - Provider interfaces, registry, and factory for LLM providers.
+- **Reusable mock providers** (`MockLLMProvider`, `MockEmbeddingProvider`) for deterministic testing and mock mode — no credentials required.
 - Reusable health models and health check abstractions.
 - Service operational methods: `check_health()`, `get_diagnostics()`, `get_metrics()`, and `ping_service()`.
 - Reusable diagnostics runners for config validation, readiness probes, and benchmarks.
@@ -83,7 +84,7 @@ python3 -m pytest
 Current verified result:
 
 ```text
-66 passed
+102 passed
 ```
 
 ## Production logging
@@ -332,6 +333,58 @@ The `ai_service_kit.settings` package provides reusable `pydantic-settings` patt
 - `build_provider_config` for normalized provider config selection.
 
 These helpers are intentionally generic; service-specific fields should remain in each service repo.
+
+## Mock providers
+
+`ai_service_kit.providers` ships two reusable mock implementations:
+
+| Class | Interface | Purpose |
+|---|---|---|
+| `MockLLMProvider` | `BaseLLMProvider` | Deterministic text responses, no API key needed |
+| `MockEmbeddingProvider` | `BaseEmbeddingProvider` | Deterministic L2-normalized vectors, no API key needed |
+
+Both providers:
+- require zero credentials and make zero network calls
+- return stable outputs for the same inputs (deterministic via SHA-256 hash + `seed`)
+- accept a `latency_ms` config key if you want to simulate network delay in integration tests
+- report normalized `usage` fields
+
+**Activating mock providers in a service repo:**
+
+```python
+from ai_service_kit.providers import register_mock_providers
+
+if settings.mock_mode:
+    register_mock_providers()  # registers "mock" into both default registries
+
+# Later, when building a provider for your family:
+embedding_provider = embedding_factory.create_provider(
+    "mock" if settings.mock_mode else settings.embedding_provider
+)
+```
+
+`register_mock_providers()` accepts optional `embedding_registry` and `llm_registry` keyword arguments when you use custom registry instances.
+
+**Config knobs:**
+
+```python
+MockLLMProvider({
+    "model": "mock-llm",   # model name reported in responses
+    "seed": 0,             # integer seed for determinism
+    "latency_ms": 0,       # artificial latency (keep small in tests)
+    "prefix": "",          # text prepended to every response
+    "suffix": "",          # text appended to every response
+})
+
+MockEmbeddingProvider({
+    "model": "mock-embed", # model name reported in results
+    "dimension": 1536,     # output vector length
+    "seed": 0,             # integer seed for determinism
+    "latency_ms": 0,       # artificial latency (keep small in tests)
+})
+```
+
+**What stays in service repos:** app-specific mock data, fake business documents, seeded vector corpora, and mock endpoint routes all belong in the service repo — not here.
 
 ## Environment configuration
 
