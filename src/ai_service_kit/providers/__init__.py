@@ -29,6 +29,17 @@ from .llm_base import (
 )
 from .llm_factory import LLMProviderFactory
 from .llm_registry import LLMProviderRegistry
+from .builtin import (
+    AnthropicEmbeddingProvider,
+    AnthropicLLMProvider,
+    GeminiEmbeddingProvider,
+    GeminiLLMProvider,
+    OllamaEmbeddingProvider,
+    OllamaLLMProvider,
+    OpenAIEmbeddingProvider,
+    OpenAILLMProvider,
+    register_builtin_providers,
+)
 from .mock_providers import MockEmbeddingProvider, MockLLMProvider, register_mock_providers
 from .registry import ProviderRegistry
 
@@ -59,6 +70,15 @@ __all__ = [
     "ProviderRegistry",
     "LLMProviderFactory",
     "LLMProviderRegistry",
+    "OpenAILLMProvider",
+    "GeminiLLMProvider",
+    "AnthropicLLMProvider",
+    "OllamaLLMProvider",
+    "OpenAIEmbeddingProvider",
+    "GeminiEmbeddingProvider",
+    "AnthropicEmbeddingProvider",
+    "OllamaEmbeddingProvider",
+    "register_builtin_providers",
     "MockLLMProvider",
     "MockEmbeddingProvider",
     "register_mock_providers",

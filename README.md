@@ -226,6 +226,7 @@ The kit now supports both LLM and embedding provider families.
 
 - Keep LLM and embeddings as separate interfaces.
 - Reuse shared provider foundations (`registry`, `factory`, base errors, and usage normalization).
+- Built-in providers auto-register on import, so apps can switch providers with env values only.
 
 Example:
 
@@ -240,16 +241,32 @@ from ai_service_kit.providers import (
 
 This keeps embedding APIs optimized for batch/vector workflows while preserving chat/completion ergonomics for LLM usage.
 
-Provider-specific notes:
+Supported providers:
+
+- LLM: `openai`, `gemini`, `anthropic`, `ollama`, `mock`
+- Embeddings: `openai`, `gemini`, `anthropic`, `ollama`, `mock`
+
+Provider registration and factory notes:
 
 - LLM providers and embedding providers stay separate at the interface level
 - Shared registry, factory, and base provider primitives are centralized in src/ai_service_kit/providers/base.py
+- Built-ins are auto-registered into default registries in src/ai_service_kit/providers/builtin.py
 - Backward-compatible compatibility modules still exist for older import paths
+
+Factory availability examples:
+
+```python
+from ai_service_kit.providers import LLMProviderFactory, ProviderFactory
+
+print(LLMProviderFactory().get_available_providers())
+print(ProviderFactory().get_available_providers())
+```
 
 Provider-specific configuration notes:
 
 - You can run the same provider for both families (common case), for example OpenAI for LLM and embeddings
 - You can split providers by family when needed, for example LLM=Gemini and Embeddings=OpenAI
+- Provider names come from env-driven config in your service (`LLM_PROVIDER`, `EMBEDDING_PROVIDER`)
 - Settings fallback is intentionally simple (2 levels only):
   - Family-specific provider key first (override)
   - Shared provider key second (default)
@@ -270,6 +287,65 @@ Behavior:
 
 - LLM OpenAI API key: LLM_OPENAI_API_KEY -> OPENAI_API_KEY
 - Embedding OpenAI model: EMBEDDING_OPENAI_MODEL -> OPENAI_MODEL
+
+Required env keys by provider:
+
+- OpenAI: `OPENAI_API_KEY` (or family-specific `LLM_OPENAI_API_KEY` / `EMBEDDING_OPENAI_API_KEY`)
+- Gemini: `GEMINI_API_KEY` (or family-specific `LLM_GEMINI_API_KEY` / `EMBEDDING_GEMINI_API_KEY`)
+- Anthropic: `ANTHROPIC_API_KEY` (or family-specific `LLM_ANTHROPIC_API_KEY` / `EMBEDDING_ANTHROPIC_API_KEY`)
+- Ollama: **no API key required** (local server — `OLLAMA_BASE_URL` defaults to `http://localhost:11434`)
+
+Recommended model keys:
+
+- LLM models: `OPENAI_MODEL`, `GEMINI_MODEL`, `ANTHROPIC_MODEL`, `OLLAMA_MODEL`
+- Embedding models: `EMBEDDING_OPENAI_MODEL`, `EMBEDDING_GEMINI_MODEL`, `EMBEDDING_ANTHROPIC_MODEL`, `EMBEDDING_OLLAMA_MODEL`
+
+Switching providers without code changes:
+
+```env
+# Example A: same provider for both families
+LLM_PROVIDER=openai
+EMBEDDING_PROVIDER=openai
+
+# Example B: split providers by family
+LLM_PROVIDER=anthropic
+EMBEDDING_PROVIDER=gemini
+
+# Example C: fully local with Ollama
+LLM_PROVIDER=ollama
+EMBEDDING_PROVIDER=ollama
+OLLAMA_MODEL=llama3.2
+EMBEDDING_OLLAMA_MODEL=nomic-embed-text
+```
+
+### Ollama (local provider)
+
+Ollama runs on your own machine and requires no API key. It uses the same
+provider interface as cloud providers, so switching is a one-env-var change.
+
+**Prerequisites:**
+
+1. [Install Ollama](https://ollama.com/)
+2. Pull the models you want to use:
+   ```sh
+   ollama pull llama3.2
+   ollama pull nomic-embed-text
+   ```
+3. Ensure the Ollama server is running (`ollama serve`).
+
+**Supported Ollama LLM models (common picks):** `llama3.2`, `llama3.1`, `mistral`, `qwen2.5`, `phi4`, `deepseek-r1`
+
+**Supported Ollama embedding models:** `nomic-embed-text` (768d), `mxbai-embed-large` (1024d), `all-minilm` (384d)
+
+**Configuration:**
+
+```env
+LLM_PROVIDER=ollama
+EMBEDDING_PROVIDER=ollama
+OLLAMA_BASE_URL=http://localhost:11434   # optional — this is the default
+OLLAMA_MODEL=llama3.2
+EMBEDDING_OLLAMA_MODEL=nomic-embed-text
+```
 
 For rationale and migration details, see [MIGRATION_NOTES.md](MIGRATION_NOTES.md).
 
@@ -331,6 +407,7 @@ The `ai_service_kit.settings` package provides reusable `pydantic-settings` patt
 - `ServiceSettings` for generic service-level fields.
 - `parse_csv_list` for list parsing from env vars.
 - `build_provider_config` for normalized provider config selection.
+- `resolve_provider_setting` and `build_two_level_provider_config` for family-specific -> shared fallback.
 
 These helpers are intentionally generic; service-specific fields should remain in each service repo.
 
@@ -338,12 +415,13 @@ These helpers are intentionally generic; service-specific fields should remain i
 
 `ai_service_kit.providers` ships two reusable mock implementations:
 
-| Class | Interface | Purpose |
-|---|---|---|
-| `MockLLMProvider` | `BaseLLMProvider` | Deterministic text responses, no API key needed |
+| Class                   | Interface               | Purpose                                                |
+| ----------------------- | ----------------------- | ------------------------------------------------------ |
+| `MockLLMProvider`       | `BaseLLMProvider`       | Deterministic text responses, no API key needed        |
 | `MockEmbeddingProvider` | `BaseEmbeddingProvider` | Deterministic L2-normalized vectors, no API key needed |
 
 Both providers:
+
 - require zero credentials and make zero network calls
 - return stable outputs for the same inputs (deterministic via SHA-256 hash + `seed`)
 - accept a `latency_ms` config key if you want to simulate network delay in integration tests

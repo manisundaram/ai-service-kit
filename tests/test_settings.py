@@ -133,3 +133,59 @@ def test_build_two_level_provider_config_resolves_requested_fields() -> None:
         "model": "text-embedding-3-large",
         "timeout": 20,
     }
+
+
+def test_two_level_fallback_supports_gemini_family_override() -> None:
+    values = {
+        "LLM_GEMINI_API_KEY": "gemini-llm-key",
+        "GEMINI_API_KEY": "gemini-shared-key",
+        "GEMINI_MODEL": "gemini-2.0-flash",
+    }
+
+    config = build_two_level_provider_config(
+        values=values,
+        family="llm",
+        provider_type="gemini",
+        fields=["api_key", "model"],
+    )
+
+    assert config == {
+        "api_key": "gemini-llm-key",
+        "model": "gemini-2.0-flash",
+    }
+
+
+def test_two_level_fallback_supports_anthropic_shared_defaults() -> None:
+    values = {
+        "ANTHROPIC_API_KEY": "anthropic-shared-key",
+        "ANTHROPIC_MODEL": "claude-3-5-haiku-latest",
+    }
+
+    config = build_two_level_provider_config(
+        values=values,
+        family="embedding",
+        provider_type="anthropic",
+        fields=["api_key", "model"],
+    )
+
+    assert config == {
+        "api_key": "anthropic-shared-key",
+        "model": "claude-3-5-haiku-latest",
+    }
+
+
+def test_build_two_level_provider_config_skips_missing_fields() -> None:
+    values = {
+        "OPENAI_MODEL": "gpt-4o-mini",
+    }
+
+    config = build_two_level_provider_config(
+        values=values,
+        family="llm",
+        provider_type="openai",
+        fields=["api_key", "model", "timeout"],
+    )
+
+    assert config == {
+        "model": "gpt-4o-mini",
+    }

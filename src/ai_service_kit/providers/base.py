@@ -205,6 +205,10 @@ class BaseEmbeddingProvider(BaseProvider):
     def validate_config(self) -> bool:
         """Validate provider configuration and raise on invalid state."""
 
+    async def health_check(self) -> bool:
+        """Return True when the provider can service requests."""
+        return True
+
     def get_provider_name(self) -> str:
         """Return the normalized provider name."""
         return self.__class__.__name__.lower().replace("embeddingprovider", "")
